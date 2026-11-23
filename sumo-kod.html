@@ -1,0 +1,365 @@
+<!DOCTYPE html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sumo – skrypty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"><style>
+/* VOICE: rzeczowy poradnik dla twórcy gry, pewny siebie, bez lania wody
+   IDEA: panel Explorera z Roblox Studio + arena sumo nad lawą
+   PICTURE: przekrój areny nad różową lawą i drzewko Explorera z zaznaczonymi skryptami
+   COLOUR and TYPE: ciemny grafit studia, żółta arena #ffd400, różowa lawa #ff5fb4; Rubik 800 + Rubik, JetBrains Mono do kodu
+   LAYOUT: pasma na całą szerokość, kroki jako numerowana lista z dużymi numerami, kod w kartach z przyciskiem Kopiuj */
+:root{color-scheme:light dark;--bg:light-dark(#f6f5f0,#17181c);--ink:light-dark(#16171a,#eceae4);--mut:light-dark(#5c5d63,#a3a3aa);--card:light-dark(#ffffff,#212228);--line:light-dark(#dedcd3,#33343c);--y:#ffd400;--lava:#ff5fb4;--code:#1b1c21;--codeink:#e8e6df}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Rubik,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(28px,4vw,64px) max(5vw,16px)}.wrap{max-width:1100px;margin:0 auto}
+h1{font-weight:800;font-size:clamp(32px,5vw,50px);line-height:1.05;margin:0 0 14px;text-wrap:balance}
+h2{font-weight:800;font-size:26px;line-height:1.15;margin:0 0 16px}
+p{max-width:68ch;margin:0 0 12px}.mut{color:var(--mut)}
+.hero{background:#17181c;color:#eceae4}
+.hero .mut{color:#a3a3aa}
+.hg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:36px;align-items:center}
+.fig svg{width:100%;height:auto;display:block}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.btn{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:10px;font-weight:600;text-decoration:none;border:2px solid var(--y);color:#17181c;background:var(--y);font:inherit;font-weight:600;cursor:pointer}
+.btn.o{background:transparent;color:inherit}
+.btn:focus-visible,a:focus-visible{outline:3px solid var(--lava);outline-offset:2px}
+code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.92em;background:light-dark(#ecebe4,#2a2b32);padding:1px 6px;border-radius:5px;overflow-wrap:anywhere}
+ol.steps{list-style:none;padding:0;margin:0;counter-reset:s}
+ol.steps>li{counter-increment:s;display:grid;grid-template-columns:64px minmax(0,1fr);gap:16px;padding:22px 0;border-top:1px solid var(--line)}
+ol.steps>li::before{content:counter(s);font-weight:800;font-size:40px;line-height:1;color:var(--y);-webkit-text-stroke:1px light-dark(#b89a00,transparent)}
+ol.steps h3{margin:2px 0 8px;font-size:20px}
+.path{display:inline-block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:14px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:4px 0 8px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.box h3{margin:0 0 8px;font-size:18px}
+table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}th{font-weight:600;color:var(--mut)}
+.sc{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 22px;overflow:hidden}
+.sh{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:16px 18px}
+.sh h3{margin:0;font-size:20px}.sh .path{margin:6px 0 0}
+.tag{font-size:13px;font-weight:600;padding:3px 9px;border-radius:999px;background:light-dark(#fff1a8,#3b3510);color:light-dark(#5a4b00,#ffe36b);margin-left:8px;vertical-align:middle}
+.tag.l{background:light-dark(#ffd9ee,#3d1c2f);color:light-dark(#8a1257,#ff9fd2)}
+pre{margin:0;background:var(--code);color:var(--codeink);padding:18px;font:13.5px/1.55 "JetBrains Mono",ui-monospace,monospace;max-height:480px;overflow:auto;tab-size:4}
+.scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.scroll a{flex:none}
+.chip{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:inherit;text-decoration:none;font-weight:500}
+.props{width:auto;margin:6px 0 10px;font-size:15px}.props td{padding:6px 14px 6px 0}.props td:first-child{color:var(--mut);white-space:nowrap}
+html{scroll-padding-top:72px}
+@media(min-width:900px){.sticky{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}}
+@media(max-width:700px){.hg,.grid2{grid-template-columns:minmax(0,1fr)}ol.steps>li{grid-template-columns:44px minmax(0,1fr)}ol.steps>li::before{font-size:30px}}
+@media(prefers-reduced-motion:no-preference){.glow{animation:g 2.4s ease-in-out infinite alternate}@keyframes g{to{opacity:.55}}}
+</style></head><body>
+<section class="band hero"><div class="wrap"><h1>Skrypty do skopiowania</h1>
+<p class="mut">Kliknij „Kopiuj kod”, otwórz skrypt w Studio, usuń to, co w nim jest (Ctrl+A, Delete), i wklej (Ctrl+V). Nad każdym kodem jest napisane, gdzie go wkleić.</p>
+<div class="nav"><a class="btn o" href="https://claude.ai/artifact/8ZgXRWADkznh4MSF47hE4J">← Instrukcja krok po kroku</a></div></div></section>
+<div class="sticky"><div class="wrap band" style="padding-block:12px"><nav class="scroll"><a class="chip" href="#manager">1. Manager</a><a class="chip" href="#attack">2. AttackHandler</a><a class="chip" href="#player">3. Atak gracza</a><a class="chip" href="#lava">4. Lawa</a><a class="chip" href="#ai">5. AI bota</a><a class="chip" href="#anim">6. NPCAnimate</a></nav></div></div>
+<section class="band"><div class="wrap"><article class="sc" id="manager"><div class="sh"><div><h3>1. Manager<span class="tag">Script</span></h3><div class="path">ServerScriptService → Manager</div><p class="mut" style="margin:6px 0 0">Spawnuje 3 boty w losowych miejscach na arenie, usuwa te, które spadły lub zginęły.</p></div>
+<button class="btn cp" data-t="c1">Kopiuj kod</button></div><pre id="c1">-- MIEJSCE: ServerScriptService &gt; Manager  (typ: Script)
+-- Spawnuje boty na arenie, usuwa te, które spadły lub zginęły.
+
+local ServerStorage = game:GetService(&quot;ServerStorage&quot;)
+local enemyTemplate = ServerStorage:WaitForChild(&quot;Enemy&quot;)
+local arena = workspace:WaitForChild(&quot;Arena&quot;)
+
+-- KONFIGURACJA
+local MAX_ENEMIES = 3
+local FALL_LIMIT = 15      -- ile studów poniżej areny bot jest uznany za przegranego
+local SPAWN_RADIUS = 0.7   -- 0.7 = boty pojawiają się w 70% promienia (nie przy krawędzi)
+
+-- Arena to walec postawiony pionowo: Size.X = grubość, Size.Y/Size.Z = średnica
+local function getArenaTop()
+	return arena.Position.Y + arena.Size.X / 2
+end
+
+-- Losowy punkt w kole (a nie w prostokącie)
+local function getRandomPosition()
+	local radius = math.min(arena.Size.Y, arena.Size.Z) / 2 * SPAWN_RADIUS
+	local angle = math.random() * math.pi * 2
+	local dist = math.sqrt(math.random()) * radius
+	local c = arena.Position
+	return Vector3.new(c.X + math.cos(angle) * dist, getArenaTop() + 5, c.Z + math.sin(angle) * dist)
+end
+
+local function spawnEnemy()
+	local enemy = enemyTemplate:Clone()
+	enemy.Name = &quot;Enemy&quot;
+	enemy:PivotTo(CFrame.new(getRandomPosition()))
+	enemy.Parent = workspace
+
+	-- KLUCZOWE: serwer jest właścicielem fizyki bota,
+	-- inaczej ApplyImpulse z ataku gracza często nic nie robi
+	local root = enemy:FindFirstChild(&quot;HumanoidRootPart&quot;)
+	if root then
+		root:SetNetworkOwner(nil)
+	end
+
+	local hum = enemy:FindFirstChildOfClass(&quot;Humanoid&quot;)
+	if hum then
+		hum.Died:Connect(function()
+			task.wait(1)
+			if enemy.Parent then enemy:Destroy() end
+		end)
+	end
+end
+
+-- Główna pętla
+while true do
+	local count = 0
+	local limitY = getArenaTop() - FALL_LIMIT
+
+	for _, obj in ipairs(workspace:GetChildren()) do
+		if obj:IsA(&quot;Model&quot;) and obj.Name == &quot;Enemy&quot; then
+			local root = obj:FindFirstChild(&quot;HumanoidRootPart&quot;)
+			if not root or root.Position.Y &lt; limitY then
+				obj:Destroy() -- spadł z areny
+			else
+				count += 1
+			end
+		end
+	end
+
+	for i = 1, MAX_ENEMIES - count do
+		spawnEnemy()
+		task.wait(0.2)
+	end
+
+	task.wait(1)
+end
+</pre></article><article class="sc" id="attack"><div class="sh"><div><h3>2. AttackHandler<span class="tag">Script</span></h3><div class="path">ServerScriptService → AttackHandler</div><p class="mut" style="margin:6px 0 0">Serwer odbiera kliknięcie gracza i odpycha boty w zasięgu (z ogłuszeniem).</p></div>
+<button class="btn cp" data-t="c2">Kopiuj kod</button></div><pre id="c2">-- MIEJSCE: ServerScriptService &gt; AttackHandler  (typ: Script)
+-- Odbiera atak od gracza i odpycha boty w zasięgu.
+
+local Players = game:GetService(&quot;Players&quot;)
+local event = game.ReplicatedStorage:WaitForChild(&quot;AttackEvent&quot;)
+
+-- KONFIGURACJA
+local ATTACK_DIST = 12     -- zasięg ataku (było 18)
+local ATTACK_POWER = 100   -- siła uderzenia (było 150)
+local STUN_TIME = 0.6      -- ile sekund bot &quot;leci&quot; bezwładnie po trafieniu
+local COOLDOWN = 0.5       -- zabezpieczenie po stronie serwera (przed spamem)
+
+local lastAttack = {}
+
+event.OnServerEvent:Connect(function(player)
+	local now = os.clock()
+	if lastAttack[player] and now - lastAttack[player] &lt; COOLDOWN then return end
+	lastAttack[player] = now
+
+	local char = player.Character
+	local root = char and char:FindFirstChild(&quot;HumanoidRootPart&quot;)
+	local myHum = char and char:FindFirstChildOfClass(&quot;Humanoid&quot;)
+	if not root or not myHum or myHum.Health &lt;= 0 then return end
+
+	for _, obj in ipairs(workspace:GetChildren()) do
+		if obj:IsA(&quot;Model&quot;) and obj.Name == &quot;Enemy&quot; then
+			local eRoot = obj:FindFirstChild(&quot;HumanoidRootPart&quot;)
+			local eHum = obj:FindFirstChildOfClass(&quot;Humanoid&quot;)
+
+			if eRoot and eHum and eHum.Health &gt; 0 then
+				local offset = eRoot.Position - root.Position
+				local flat = Vector3.new(offset.X, 0, offset.Z)
+
+				if flat.Magnitude &lt;= ATTACK_DIST and flat.Magnitude &gt; 0.01 then
+					local push = (flat.Unit + Vector3.new(0, 0.35, 0)).Unit
+
+					-- Ogłuszenie: Humanoid przestaje &quot;walczyć&quot; z odrzutem
+					local stunEnd = os.clock() + STUN_TIME
+					obj:SetAttribute(&quot;StunnedUntil&quot;, stunEnd)
+					eHum.PlatformStand = true
+
+					eRoot:ApplyImpulse(push * eRoot.AssemblyMass * ATTACK_POWER)
+
+					task.delay(STUN_TIME, function()
+						-- zdejmujemy ogłuszenie tylko jeśli nie było nowego trafienia
+						if obj.Parent and (obj:GetAttribute(&quot;StunnedUntil&quot;) or 0) &lt;= os.clock() then
+							eHum.PlatformStand = false
+						end
+					end)
+				end
+			end
+		end
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(p)
+	lastAttack[p] = nil
+end)
+</pre></article><article class="sc" id="player"><div class="sh"><div><h3>3. Atak gracza<span class="tag l">LocalScript</span></h3><div class="path">StarterPlayer → StarterCharacterScripts → PlayerAttack</div><p class="mut" style="margin:6px 0 0">Mysz, klawisz F, pad (R2) i przycisk „PCHNIJ” na telefonie.</p></div>
+<button class="btn cp" data-t="c3">Kopiuj kod</button></div><pre id="c3">-- MIEJSCE: StarterPlayer &gt; StarterCharacterScripts &gt; PlayerAttack  (typ: LocalScript)
+-- Atak: lewy przycisk myszy / klawisz F / R2 na padzie / przycisk na telefonie.
+
+local ContextActionService = game:GetService(&quot;ContextActionService&quot;)
+local event = game.ReplicatedStorage:WaitForChild(&quot;AttackEvent&quot;)
+local humanoid = script.Parent:WaitForChild(&quot;Humanoid&quot;)
+
+local COOLDOWN = 0.5
+local canAttack = true
+
+local function attack(_, state)
+	if state ~= Enum.UserInputState.Begin then
+		return Enum.ContextActionResult.Pass
+	end
+	if canAttack and humanoid.Health &gt; 0 then
+		canAttack = false
+		event:FireServer() -- informujemy serwer o ataku
+		task.delay(COOLDOWN, function() canAttack = true end)
+	end
+	return Enum.ContextActionResult.Pass
+end
+
+ContextActionService:BindAction(&quot;SumoAttack&quot;, attack, true,
+	Enum.UserInputType.MouseButton1, Enum.KeyCode.F, Enum.KeyCode.ButtonR2)
+ContextActionService:SetTitle(&quot;SumoAttack&quot;, &quot;PCHNIJ&quot;)
+
+humanoid.Died:Connect(function()
+	ContextActionService:UnbindAction(&quot;SumoAttack&quot;)
+end)
+</pre></article><article class="sc" id="lava"><div class="sh"><div><h3>4. Lawa<span class="tag">Script</span></h3><div class="path">Workspace → Baseplate → LavaScript</div><p class="mut" style="margin:6px 0 0">Gracz w lawie ginie, bot znika (Manager robi nowego).</p></div>
+<button class="btn cp" data-t="c4">Kopiuj kod</button></div><pre id="c4">-- MIEJSCE: Workspace &gt; Baseplate &gt; LavaScript  (typ: Script)
+-- Gracz w lawie ginie, bot w lawie znika (Manager stworzy nowego).
+
+local lava = script.Parent
+
+lava.Touched:Connect(function(hit)
+	local character = hit:FindFirstAncestorOfClass(&quot;Model&quot;)
+	if not character then return end
+
+	local humanoid = character:FindFirstChildOfClass(&quot;Humanoid&quot;)
+	if not humanoid or humanoid.Health &lt;= 0 then return end
+
+	if game.Players:GetPlayerFromCharacter(character) then
+		humanoid.Health = 0
+	elseif character.Name == &quot;Enemy&quot; then
+		character:Destroy()
+	end
+end)
+</pre></article><article class="sc" id="ai"><div class="sh"><div><h3>5. AI bota<span class="tag">Script</span></h3><div class="path">ServerStorage → Enemy → EnemyAI</div><p class="mut" style="margin:6px 0 0">Bot goni najbliższego gracza i odpycha go przy dotyku.</p></div>
+<button class="btn cp" data-t="c5">Kopiuj kod</button></div><pre id="c5">-- MIEJSCE: ServerStorage &gt; Enemy &gt; EnemyAI  (typ: Script)
+-- AI bota: goni najbliższego gracza i odpycha go przy dotyku.
+
+local Players = game:GetService(&quot;Players&quot;)
+local npc = script.Parent
+local hum = npc:WaitForChild(&quot;Humanoid&quot;)
+local root = npc:WaitForChild(&quot;HumanoidRootPart&quot;)
+
+-- KONFIGURACJA
+local PUSH_POWER = 50      -- siła odrzutu gracza
+local PUSH_DURATION = 0.2  -- jak długo trwa odrzut
+local SEARCH_RANGE = 100   -- zasięg wzroku bota
+local HIT_COOLDOWN = 0.8   -- bot nie może pchać tego samego gracza częściej
+
+local lastHit = {}
+
+local function isStunned()
+	return (npc:GetAttribute(&quot;StunnedUntil&quot;) or 0) &gt; os.clock()
+end
+
+local function findTarget()
+	local closest, shortest = nil, SEARCH_RANGE
+	for _, player in ipairs(Players:GetPlayers()) do
+		local char = player.Character
+		local pRoot = char and char:FindFirstChild(&quot;HumanoidRootPart&quot;)
+		local pHum = char and char:FindFirstChildOfClass(&quot;Humanoid&quot;)
+		if pRoot and pHum and pHum.Health &gt; 0 then
+			local dist = (pRoot.Position - root.Position).Magnitude
+			if dist &lt; shortest then
+				shortest = dist
+				closest = pRoot
+			end
+		end
+	end
+	return closest
+end
+
+root.Touched:Connect(function(hit)
+	if isStunned() or hum.Health &lt;= 0 then return end
+
+	local char = hit:FindFirstAncestorOfClass(&quot;Model&quot;)
+	local player = char and Players:GetPlayerFromCharacter(char)
+	if not player then return end
+
+	local pRoot = char:FindFirstChild(&quot;HumanoidRootPart&quot;)
+	if not pRoot or pRoot:FindFirstChild(&quot;PushForce&quot;) then return end
+	if lastHit[player] and os.clock() - lastHit[player] &lt; HIT_COOLDOWN then return end
+	lastHit[player] = os.clock()
+
+	local flat = Vector3.new(pRoot.Position.X - root.Position.X, 0, pRoot.Position.Z - root.Position.Z)
+	if flat.Magnitude &lt; 0.01 then flat = root.CFrame.LookVector end
+	local pushVector = (flat.Unit + Vector3.new(0, 0.5, 0)).Unit * PUSH_POWER
+
+	local attachment = Instance.new(&quot;Attachment&quot;)
+	attachment.Name = &quot;PushAttachment&quot;
+	attachment.Parent = pRoot
+
+	local force = Instance.new(&quot;LinearVelocity&quot;)
+	force.Name = &quot;PushForce&quot;
+	force.Attachment0 = attachment
+	force.RelativeTo = Enum.ActuatorRelativeTo.World
+	force.MaxForce = math.huge
+	force.VectorVelocity = pushVector
+	force.Parent = pRoot
+
+	root.AssemblyLinearVelocity = Vector3.zero -- bot zatrzymuje się po uderzeniu
+
+	task.delay(PUSH_DURATION, function()
+		force:Destroy()
+		attachment:Destroy()
+	end)
+end)
+
+-- Pętla ruchu
+while npc.Parent and hum.Health &gt; 0 do
+	if not isStunned() then
+		local target = findTarget()
+		hum:MoveTo(target and target.Position or root.Position)
+	end
+	task.wait(0.3)
+end
+</pre></article><article class="sc" id="anim"><div class="sh"><div><h3>6. NPCAnimate<span class="tag">Script</span></h3><div class="path">ServerStorage → Enemy → NPCAnimate</div><p class="mut" style="margin:6px 0 0">Animacje chodzenia, stania i spadania bota.</p></div>
+<button class="btn cp" data-t="c6">Kopiuj kod</button></div><pre id="c6">-- MIEJSCE: ServerStorage &gt; Enemy &gt; NPCAnimate  (typ: Script)
+-- Animacje bota (LocalScript &quot;Animate&quot; w bocie by nie działał, dlatego zwykły Script).
+
+local npc = script.Parent
+local hum = npc:WaitForChild(&quot;Humanoid&quot;)
+-- bot z Rig Buildera może nie mieć Animatora, więc tworzymy go w razie potrzeby
+local animator = hum:FindFirstChildOfClass(&quot;Animator&quot;)
+if not animator then
+	animator = Instance.new(&quot;Animator&quot;)
+	animator.Parent = hum
+end
+
+local function load(id, looped)
+	local anim = Instance.new(&quot;Animation&quot;)
+	anim.AnimationId = &quot;rbxassetid://&quot; .. id
+	local track = animator:LoadAnimation(anim)
+	track.Looped = looped
+	return track
+end
+
+-- standardowe animacje R15 (te same ID co w Twoim Animate)
+local idle = load(507766388, true)
+local walk = load(507777826, true)
+local fall = load(507767968, true)
+
+idle:Play()
+
+hum.Running:Connect(function(speed)
+	if speed &gt; 0.5 then
+		if not walk.IsPlaying then walk:Play(0.2) end
+		walk:AdjustSpeed(math.clamp(speed / 14, 0.5, 1.5))
+	elseif walk.IsPlaying then
+		walk:Stop(0.2)
+	end
+end)
+
+hum.StateChanged:Connect(function(_, new)
+	if new == Enum.HumanoidStateType.Freefall or new == Enum.HumanoidStateType.PlatformStanding then
+		if not fall.IsPlaying then fall:Play(0.1) end
+	elseif fall.IsPlaying then
+		fall:Stop(0.2)
+	end
+end)
+</pre></article></div></section>
+<script>{
+for(const b of document.querySelectorAll('.cp')){b.addEventListener('click',async()=>{
+const pre=document.getElementById(b.dataset.t);const txt=pre.textContent;let ok=false;
+try{await navigator.clipboard.writeText(txt);ok=true}catch(e){}
+if(!ok){const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);try{ok=document.execCommand('copy')}catch(e){}}
+const old='Kopiuj kod';b.textContent=ok?'Skopiowano ✓':'Zaznaczone – Ctrl+C';setTimeout(()=>b.textContent=old,1800)})}
+}</script></body></html>
